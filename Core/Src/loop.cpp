@@ -87,7 +87,9 @@ void setup(void) {
 	tft.setResStartAdress(0x08020000); //Установим начало ресурсов
 
 	gfxfont.init(&tft);
-	gfxfont.setFont(&JetBrainsMono_VariableFont_wght12pt8b);
+
+	gfxfont.setFont(&CourierCyr12pt8b);
+	//gfxfont.setFont(&JetBrainsMono_VariableFont_wght12pt8b);
 	tft.SetFontColor(4, 14);
 
 

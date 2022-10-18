@@ -241,6 +241,8 @@ void MP3(char * mp3name)
 
 	DMA_Buffer_Current = 0;
 
+	taskMP3_terminate =  false;
+
 	for(;;)
 	{
 
@@ -251,6 +253,7 @@ void MP3(char * mp3name)
 			taskMP3_terminate = false;
 			f_close(&SDFile);
 			DAC_DMA_Pause();
+		    DAC_DMA_ClearBuffer(); //Очистить выходной буффер
 			MP3_Deinit();
 			osThreadExit();
 		}
@@ -260,7 +263,20 @@ void MP3(char * mp3name)
 		if (init == false )
 		{
 		  //Ждем запроса от DMA
-		  while(DMA_Buffer_Current == 0){osDelay(2);}
+		  while(DMA_Buffer_Current == 0){osDelay(2);
+
+		    if(taskMP3_terminate)
+		    {
+		  			rtt.warning("Завершение MP3 по внешнему запросу");
+		  			taskMP3_terminate = false;
+		  			f_close(&SDFile);
+		  			DAC_DMA_Pause();
+		  		    DAC_DMA_ClearBuffer(); //Очистить выходной буффер
+		  			MP3_Deinit();
+		  			osThreadExit();
+		    }
+
+		  }
 		  DMA_Buffer_Current = 0;
 		}
 		else
@@ -419,7 +435,7 @@ void MP3(char * mp3name)
 		mp3DecoderState->summaryDecodeTime_mks += temp;
 		if (err < 0)
 		{
-
+		    DAC_DMA_ClearBuffer(); //Очистить выходной буффер
 			playerInfo.error++; //Счетчик ошибок
 
 			if (debug_mode.showDecoderInfo)
@@ -596,12 +612,6 @@ void MP3(char * mp3name)
 	stopError();
 }
 
-
-/*************************************************************************************************
- * @brief	Останов декодера
- *
- * @param	player_cmd - команда, отправляемая задаче-проигрывателю
- ************************************************************************************************/
 static void stop_decode(cmd_t player_cmd)
 {
 	// остановить ЦАП
@@ -621,9 +631,6 @@ static void MP3_Deinit(void)
 	rtt.colorStringln(0, 183, str);
 
 }
-
-
-
 
 //FreeRTOS
 void StartTaskMP3(void *argument)
@@ -667,7 +674,6 @@ void play(char * name)
 		rtt.info("play state %d", state);
 
 		//Ждем завершения
-
 		taskMP3_terminate = true;
 		while(osThreadGetState (myTaskMP3Handle) != osThreadTerminated)
 		{osDelay(1);}

@@ -43,8 +43,16 @@ void init_MP3_DAC_DMA(void)
 //Очистить буффер
 void DAC_DMA_ClearBuffer(void)
 {
-  //memset(&outBuff[1][0], 0, 9216);
+	int16_t *p = &outBuff[0][0];
+	for (int i = 0 ; i < 9216/2 ; i++)
+	{
+		*p = 2047;
+		p++;
+	}
 }
+
+
+
 
 
 void DAC_DMA_Pause(void)

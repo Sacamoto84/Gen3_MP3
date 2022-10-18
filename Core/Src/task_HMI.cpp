@@ -6,6 +6,10 @@
 #include "main.h"
 #include "global.h"
 
+extern void DAC_DMA_Pause(void);
+extern void DAC_DMA_Play(void);
+extern void DAC_DMA_ClearBuffer(void);
+
 void Background_Board(void);
 void Button(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t select, char *str);
 void Button_Pressed(uint16_t x, uint16_t y, uint16_t w, uint16_t h, char *str);
@@ -23,7 +27,7 @@ int window_end;
 int NUM;
 
 bool mp3_config; //Режим управления перемоткой
-
+bool pause;
 
 void task_HMI(void)
 {
@@ -43,15 +47,15 @@ void task_HMI(void)
 	sprintf(str, "%dk", list_mp3.size[selectIndex]/1024);
 
 	tft.SetColor(3);
-	gfxfont.Puts(10, 229, str, 16);
+	gfxfont.Puts(10, 228, str, 16);
 
 	tft.SetColor(5);
-	sprintf(str, "G:%d", (int)(playerInfo.gain * 10.0F));
-	gfxfont.Puts(177, 229, str, 16);
+	sprintf(str, "G%d", (int)(playerInfo.gain * 10.0F));
+	gfxfont.Puts(177, 228, str, 16);
 
 	tft.SetColor(5);
-	sprintf(str, "E:%d", playerInfo.error);
-	gfxfont.Puts(100, 229, str, 16);
+	sprintf(str, "E%d", playerInfo.error);
+	gfxfont.Puts(100, 228, str, 16);
 
 
 
@@ -62,11 +66,18 @@ void task_HMI(void)
 	tft.LineH(210, 7, 232, 2 );
 
 	tft.RectangleFilled(9, 187, 221 , 20, 15);
-	tft.RectangleFilled(11, 189, 217*playerInfo.fpersent , 16, 14);
+	tft.RectangleFilled(11, 189, 217*playerInfo.fpersent , 16, 3);
 
-	tft.SetColor(13);
-	sprintf(str, "%lu",  playerInfo.timeCurrent);
-	gfxfont.Puts(90, 205, str, 16);
+	if(pause == false){
+	  tft.SetColor(13);
+	  sprintf(str, "%lu",  playerInfo.timeCurrent/100);
+	  gfxfont.Puts(90, 203, str, 16);
+	}
+	else
+	{
+	   tft.SetColor(12);
+	   gfxfont.Puts(85, 203, "Pause", 16 );
+	}
 
 	tft.SetColor(14);
 	sprintf(str, "%s",  playerInfo.filename.c_str());
@@ -78,17 +89,20 @@ void task_HMI(void)
 
 		Button(20 ,100 , 200, 30 , 1, "<< seek >>");
 
+		int step = f_size(&SDFile)/4096/50;
+
 		if (mp3_config) {
 
 		  if (Encoder.Left) {
 		    Encoder.Left = 0;
-		    uint offset = f_tell(&SDFile) - (4096 * 32);
+
+		    uint offset = f_tell(&SDFile) - (4096 * step);
 		    f_lseek (&SDFile , offset );
 		  }
 
 		  if (Encoder.Right) {
 		    Encoder.Right = 0;
-		    uint offset = f_tell(&SDFile) + (4096 * 32);
+		    uint offset = f_tell(&SDFile) + (4096 * step);
 		    f_lseek (&SDFile , offset );
 		  }
 		}
@@ -132,6 +146,7 @@ void viwePalitra(void)
 
 void UI_List_Mp3()
 {
+
 	//Блокировка энкодера, нужно чтобы обрабатывать в пре
 	if (mp3_config == false) {
 		if (Encoder.Left) {
@@ -189,18 +204,17 @@ void UI_List_Mp3()
     //└───────────────────────────────────────────────────────────────────────┤
 	int item_start_y = 10;
 	int item_height = 20;
-	//tft.RectangleFilled(218, item_start_y, 10,                    //│
-	//		(max_window_item + 1) * item_height, 12); //│
 
-		int H = ((max_window_item + 1) * item_height) - 4 + 4;
+	int H = ((max_window_item + 1) * item_height) - 4 + 4;
+
+	if ((max_window_item+1) < NUM){
 		float Hw = H * ((float) (max_window_item+1) / (float) (NUM));
-		float delta = float(H - Hw)                                        //│
-				/ (float) (NUM - max_window_item -1 );          //│
+		float delta = float(H - Hw) / (float) (NUM - max_window_item -1 );
+		tft.RectangleFilled(228, item_start_y + delta * window_start, 2, Hw + 1, 16);
+	}
+	else
+		tft.RectangleFilled(228, item_start_y, 2, H + 1, 16);
 
-		tft.RectangleFilled(228,                                    //│
-				item_start_y + delta * window_start,            //│
-				2, Hw + 1, 16);                     //│
-	                                                                        //│
 	//────────────────────────────────────────────────────────────────────────┘
 
 	//KEY.isHolded();
@@ -264,10 +278,26 @@ void UI_List_Mp3()
 	  }
 	  else
 	  {
+		   pause = false;
 		   //Запуск файла
 		   play((char *)list_mp3.name[selectIndex].c_str());
+
 	  }
 
+	}
+	if (KEY.isDouble())
+	{
+		if (pause == false){
+			DAC_DMA_Pause();
+		    DAC_DMA_ClearBuffer(); //Очистить выходной буффер
+			pause = true;
+		}
+		else
+		{
+		    DAC_DMA_ClearBuffer(); //Очистить выходной буффер
+			DAC_DMA_Play();
+			pause = false;
+		}
 	}
 
 
