@@ -16,8 +16,6 @@ void Button_Pressed(uint16_t x, uint16_t y, uint16_t w, uint16_t h, char *str);
 void viwePalitra(void);
 void UI_List_Mp3();
 
-
-
 int selectIndex = 0;
 int encoder_block = 0;
 
@@ -42,11 +40,6 @@ void task_HMI(void)
 
 	UI_List_Mp3();
 
-
-
-
-
-
 	char str[64];
 	sprintf(str, "%dk", list_mp3.size[selectIndex]/1024);
 
@@ -57,11 +50,9 @@ void task_HMI(void)
 	sprintf(str, "G%d", (int)(playerInfo.gain * 10.0F));
 	gfxfont.Puts(188, 228, str, 16);
 
-	tft.SetColor(5);
+	tft.SetColor(3);
 	sprintf(str, "E%d", playerInfo.error);
 	gfxfont.Puts(105, 228, str, 16);
-
-
 
 	tft.LineH(154, 7, 232, 6 );
 	tft.LineH(155, 7, 232, 2 );
@@ -71,8 +62,6 @@ void task_HMI(void)
 
 	tft.RectangleFilled(9, 187, 180 , 20, 15);
 	tft.RectangleFilled(11, 189, (180-4)*playerInfo.fpersent , 16, 2);
-
-
 
 	tft.RectangleFilled(191, 187, 40 , 20, 15);
 	gfxfont.setFont(&DejaVu_Sans_Mono_12);

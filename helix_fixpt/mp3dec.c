@@ -303,9 +303,6 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 		return ERR_MP3_INVALID_FRAMEHEADER;		/* don't clear outbuf since we don't know size (failed to parse header) */
 	*inbuf += fhBytes;
 	
-#ifdef PROFILE
-	time = systime_get();
-#endif
 	/* unpack side info */
 	siBytes = UnpackSideInfo(mp3DecInfo, *inbuf);
 	if (siBytes < 0) {
@@ -314,11 +311,6 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 	}
 	*inbuf += siBytes;
 	*bytesLeft -= (fhBytes + siBytes);
-#ifdef PROFILE
-	time = systime_get() - time;
-	printf("UnpackSideInfo: %i ms\n", time);
-#endif
-	
 	
 	/* if free mode, need to calculate bitrate and nSlots manually, based on frame size */
 	if (mp3DecInfo->bitrate == 0 || mp3DecInfo->freeBitrateFlag) {
@@ -362,9 +354,6 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 			return ERR_MP3_INDATA_UNDERFLOW;	
 		}
 
-#ifdef PROFILE
-	time = systime_get();
-#endif
 		/* fill main data buffer with enough new data for this frame */
 		if (mp3DecInfo->mainDataBytes >= mp3DecInfo->mainDataBegin) {
 			/* adequate "old" main data available (i.e. bit reservoir) */
@@ -384,10 +373,6 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 			MP3ClearBadFrame(mp3DecInfo, outbuf);
 			return ERR_MP3_MAINDATA_UNDERFLOW;
 		}
-#ifdef PROFILE
-	time = systime_get() - time;
-	printf("data buffer filling: %i ms\n", time);
-#endif
 
 	}
 	bitOffset = 0;
@@ -397,16 +382,9 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 	for (gr = 0; gr < mp3DecInfo->nGrans; gr++) {
 		for (ch = 0; ch < mp3DecInfo->nChans; ch++) {
 			
-			#ifdef PROFILE
-				time = systime_get();
-			#endif
 			/* unpack scale factors and compute size of scale factor block */
 			prevBitOffset = bitOffset;
 			offset = UnpackScaleFactors(mp3DecInfo, mainPtr, &bitOffset, mainBits, gr, ch);
-			#ifdef PROFILE
-				time = systime_get() - time;
-				printf("UnpackScaleFactors: %i ms\n", time);
-			#endif
 
 			sfBlockBits = 8*offset - prevBitOffset + bitOffset;
 			huffBlockBits = mp3DecInfo->part23Length[gr][ch] - sfBlockBits;
@@ -418,9 +396,6 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 				return ERR_MP3_INVALID_SCALEFACT;
 			}
 
-			#ifdef PROFILE
-				time = systime_get();
-			#endif
 			/* decode Huffman code words */
 			prevBitOffset = bitOffset;
 			offset = DecodeHuffman(mp3DecInfo, mainPtr, &bitOffset, huffBlockBits, gr, ch);
@@ -428,10 +403,6 @@ int MP3Decode(HMP3Decoder hMP3Decoder, unsigned char **inbuf, int *bytesLeft, sh
 				MP3ClearBadFrame(mp3DecInfo, outbuf);
 				return ERR_MP3_INVALID_HUFFCODES;
 			}
-			#ifdef PROFILE
-				time = systime_get() - time;
-				printf("Huffman: %i ms\n", time);
-			#endif
 
 			mainPtr += offset;
 			mainBits -= (8*offset - prevBitOffset + bitOffset);

@@ -8,13 +8,13 @@
 #include "fatfs.h"
 
 /*ФУНКЦИЯ СОРТИРОВКИ СТРОК*/
-void sort(mString <24> *S, int N, Dir_File_Info_Array * list)
+void sort(mString <64> *S, int N, Dir_File_Info_Array * list)
 {
 	for (int i = 0; i < N - 1; i++)
 			for (int j = i + 1; j < N; j++) {
 				if (strcmp(S[i].c_str(), S[j].c_str())>0){
 					//swap(S[i], S[j]);
-					mString <24> temp = S[i];
+					mString <64> temp = S[i];
 					S[i] = S[j];
 					S[j] = temp;
 
@@ -29,7 +29,7 @@ void sort(mString <24> *S, int N, Dir_File_Info_Array * list)
 
 				if ((list->isDirectory[j] == true )&&(list->isDirectory[i] == false ))
 				{
-					mString <24> temp = list->name[i];
+					mString <64> temp = list->name[i];
 					list->name[i] = list->name[j];
 					list->name[j] = temp;
 

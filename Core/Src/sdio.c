@@ -98,7 +98,7 @@ void HAL_SD_MspInit(SD_HandleTypeDef* sdHandle)
     hdma_sdio_rx.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_sdio_rx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_sdio_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_sdio_rx.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_sdio_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_sdio_rx.Init.Mode = DMA_PFCTRL;
     hdma_sdio_rx.Init.Priority = DMA_PRIORITY_HIGH;
     hdma_sdio_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;

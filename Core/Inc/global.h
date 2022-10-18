@@ -52,7 +52,7 @@ extern mString <64> globalPach;
 typedef struct{
 
 
-	mString <24> filename;
+	mString <64> filename;
 
 
 	uint32_t uwTick;
@@ -76,7 +76,7 @@ typedef struct{
 typedef struct
 {
   uint32_t  maxFileCount = 0;   //Количество найденных файлов
-  mString   <24> name [32];     //Имя файла
+  mString   <64> name [32];     //Имя файла
   uint      size [32];          //Размер файла
   bool      isDirectory[32];    //Признак того что это директория
   bool      subDirectory;       //Признак того мы в подпапке
@@ -113,7 +113,7 @@ extern void PAGE_init_palitra(void);
 extern void task_HMI(void);
 
 // utiletes.cpp
-extern void sort(mString <24> *S, int N);
+extern void sort(mString <64> *S, int N);
 extern void readDir(char * path, Dir_File_Info_Array * list);
 extern void stopError(void);
 extern mString <64> dirForvard(mString <64> dir);
