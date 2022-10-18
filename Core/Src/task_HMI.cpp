@@ -7,8 +7,8 @@
 #include "global.h"
 
 void Background_Board(void);
-void PAGE_Button(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t select, char *str);
-void PAGE_Button_Pressed(uint16_t x, uint16_t y, uint16_t w, uint16_t h, char *str);
+void Button(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t select, char *str);
+void Button_Pressed(uint16_t x, uint16_t y, uint16_t w, uint16_t h, char *str);
 void viwePalitra(void);
 void UI_List_Mp3();
 
@@ -22,6 +22,8 @@ int window_start    = 0;
 int window_end;
 int NUM;
 
+bool mp3_config; //Режим управления перемоткой
+
 
 void task_HMI(void)
 {
@@ -31,7 +33,7 @@ void task_HMI(void)
 
   while(1)
   {
-	KEY.tick();
+	//KEY.tick();
 	Background_Board();
 
 	UI_List_Mp3();
@@ -71,7 +73,26 @@ void task_HMI(void)
 	gfxfont.Puts(10, 180, gfxfont.utf8rus2(str), 16);
 
 
+	if (mp3_config)
+	{
 
+		Button(20 ,100 , 200, 30 , 1, "<< seek >>");
+
+		if (mp3_config) {
+
+		  if (Encoder.Left) {
+		    Encoder.Left = 0;
+		    uint offset = f_tell(&SDFile) - (4096 * 32);
+		    f_lseek (&SDFile , offset );
+		  }
+
+		  if (Encoder.Right) {
+		    Encoder.Right = 0;
+		    uint offset = f_tell(&SDFile) + (4096 * 32);
+		    f_lseek (&SDFile , offset );
+		  }
+		}
+	}
 
 
 
@@ -112,7 +133,7 @@ void viwePalitra(void)
 void UI_List_Mp3()
 {
 	//Блокировка энкодера, нужно чтобы обрабатывать в пре
-	if (encoder_block == 0) {
+	if (mp3_config == false) {
 		if (Encoder.Left) {
 			Encoder.Left = 0;
 			selectIndex-- ;
@@ -181,10 +202,27 @@ void UI_List_Mp3()
 				2, Hw + 1, 16);                     //│
 	                                                                        //│
 	//────────────────────────────────────────────────────────────────────────┘
-	if (KEY.isPress()) {
 
-	  KEY.isHolded();
-	  KEY.isDouble();
+	//KEY.isHolded();
+	//KEY.isPress();
+    //KEY.isRelease();
+
+	KEY.tick();
+
+	if (KEY.isSingle() && mp3_config)
+	{
+		mp3_config = false;
+		return;
+	}
+
+	if (KEY.isHolded())
+	{
+	   mp3_config = !mp3_config;
+	}
+	else
+	if (KEY.isSingle()) {
+
+	  if (mp3_config)  return;
 
 	  //Возврат назад
 	  if ((selectIndex == 0) && (list_mp3.root == false)) //Реакция на 3 точки
@@ -263,7 +301,7 @@ void Background_Board(void) {
 
 }
 
-void PAGE_Button(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t select, char *str) {
+void Button(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t select, char *str) {
 
 	if (select) {
 		tft.RectangleFilled(x, y, w, h, 2);
@@ -287,7 +325,7 @@ void PAGE_Button(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t select
 		tft.LineV(x + w + 1, y + 1, y + h + 1, 15);
 	}
 
-	gfxfont.set_delta_x(2);
+	//gfxfont.set_delta_x(2);
 	gfxfont.Puts(x + 15, y + 20, str);
 
 	//u8g_SetFont(u8g_font_profont29);
@@ -296,7 +334,7 @@ void PAGE_Button(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t select
 }
 
 //Нажатая кнопка
-void PAGE_Button_Pressed(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
+void Button_Pressed(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
 		char *str) {
 
 	tft.RectangleFilled(x, y, w, h, 2); // Светлый фон выбранной кнопки
