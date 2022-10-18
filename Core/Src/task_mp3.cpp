@@ -236,8 +236,8 @@ void MP3(char * mp3name)
 
 	mp3DecoderState->gain = MP3_GAIN;
 
-
 	playerInfo.filename = mp3name;
+	playerInfo.filename.truncate(4);
 
 	DMA_Buffer_Current = 0;
 
@@ -264,6 +264,9 @@ void MP3(char * mp3name)
 		{
 		  //Ждем запроса от DMA
 		  while(DMA_Buffer_Current == 0){osDelay(2);
+
+			playerInfo.flseekcurrent = f_tell(&SDFile);
+			playerInfo.calculatePersent(); //Расчет процента
 
 		    if(taskMP3_terminate)
 		    {

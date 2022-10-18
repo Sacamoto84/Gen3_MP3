@@ -88,6 +88,15 @@ void setup(void) {
 
 	gfxfont.init(&tft);
 
+	//FreeMonoBold12pt8b
+
+	//gfxfont.setFont(&FreeSerif12pt8b);
+
+
+	//gfxfont.setFont(&Roboto_Mono_24);
+
+	//gfxfont.setFont(&FreeMono12pt8b);
+	//gfxfont.setFont(&FreeMonoBold12pt8b);
 	gfxfont.setFont(&CourierCyr12pt8b);
 	//gfxfont.setFont(&JetBrainsMono_VariableFont_wght12pt8b);
 	tft.SetFontColor(4, 14);
