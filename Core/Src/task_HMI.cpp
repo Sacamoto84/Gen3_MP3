@@ -35,14 +35,14 @@ void task_HMI(void)
 
   while(1)
   {
-	//KEY.tick();
+
 	Background_Board();
 
 	UI_List_Mp3();
 
 	char str[64];
-	sprintf(str, "%dk", list_mp3.size[selectIndex]/1024);
 
+	sprintf(str, "%dk", playerInfo.filesize/1024);
 	tft.SetColor(3);
 	gfxfont.Puts(10, 228, str, 16);
 
@@ -60,50 +60,43 @@ void task_HMI(void)
 	tft.LineH(209, 7, 232, 6 );
 	tft.LineH(210, 7, 232, 2 );
 
+	//Индикатор
 	tft.RectangleFilled(9, 187, 180 , 20, 15);
 	tft.RectangleFilled(11, 189, (180-4)*playerInfo.fpersent , 16, 2);
 
+	//Процент и пауза
 	tft.RectangleFilled(191, 187, 40 , 20, 15);
 	gfxfont.setFont(&DejaVu_Sans_Mono_12);
 	if(pause == false){
 	  tft.SetColor(3);
-	  sprintf(str, "%d",  (int)(playerInfo.fpersent*9999));
+	  sprintf(str, "%4d",  (int)(playerInfo.fpersent*9999));
 	  gfxfont.Puts(195, 201, str, 16);
 	}
 	else
 	{
 	   tft.SetColor(12);
-	   gfxfont.Puts(192, 201, "Pause", 16 );
+	   gfxfont.Puts(192, 201, (char*)"Pause", 16 );
 	}
 
-
+	//Имя играенмого файла
 	gfxfont.setFont(&CourierCyr12pt8b);
 	tft.SetColor(14);
 	sprintf(str, "%s",  playerInfo.filename.c_str());
 	gfxfont.Puts(10, 178, gfxfont.utf8rus2(str), 16);
 
-
+	//Перемотка
 	if (mp3_config)
 	{
-
-		//char s[32];
-		char * text = "< перемотка >";
-		//tft.ConvertStringUTF8to1251(text, &s[0], strlen(text));
-
-
+		char * text = (char*)"< перемотка >";
 		Button(20 ,100 , 200, 30 , 1, gfxfont.utf8rus2(text));
-
 		int step = f_size(&SDFile)/4096/50;
-
 		if (mp3_config) {
 
 		  if (Encoder.Left) {
 		    Encoder.Left = 0;
-
 		    uint offset = f_tell(&SDFile) - (4096 * step);
 		    f_lseek (&SDFile , offset );
 		  }
-
 		  if (Encoder.Right) {
 		    Encoder.Right = 0;
 		    uint offset = f_tell(&SDFile) + (4096 * step);
@@ -111,26 +104,7 @@ void task_HMI(void)
 		  }
 		}
 	}
-
-
-
-
-
-
-
-	//play((char*)playerInfo.filename);
-	//tft.RectangleFilled(0, 160, 200 * playerInfo.fpersent, 20, 14);
-
-	//gfxfont.Puts(20, 120, gfxfont.utf8rus2("Пр1"));
-
-	//viwePalitra();
-	//PAGE_Button(10, 10, 50, 30,	1, (char*)"123");
-
-	//PAGE_Button(10, 100, 50, 30,	0, (char*)"123");
-
-	//PAGE_Button_Pressed(10, 150, 50, 30, (char*)"123");
-
-    tft.Update();
+	tft.ST7789_UpdateDMA4bitV2();
   }
 }
 
@@ -303,12 +277,6 @@ void UI_List_Mp3()
 			pause = false;
 		}
 	}
-
-
-
-
-
-
 }
 
 
